@@ -1,0 +1,19 @@
+{
+  "name": "remittance-maker",
+  "version": "1.0.0",
+  "description": "Module that connects to remittance providers in order to quote and execute remittance orders",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@bitbucket.org/jaime-ez/remittance-maker.git"
+  },
+  "keywords": [
+    "remittance"
+  ],
+  "author": "Jaime Echegaray Zipper",
+  "license": "MIT",
+  "homepage": "https://bitbucket.org/jaime-ez/remittance-maker#readme"
+}
