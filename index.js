@@ -54,11 +54,11 @@ Maker.prototype.quoteRemittanceFixedSource = function (options, callback) {
   })
 
   if (!options.sourceCurrency) {
-    return callback({success: false, error_type: 'sourceCurrency_required'}, null)
+    return callback({success: false, error_type: 'sourceCurrency_required', statusCode: 400}, null)
   }
 
   if (!(options.sourceAmount && _.isFinite(options.sourceAmount))) {
-    return callback({success: false, error_type: 'sourceAmount_invalid'}, null)
+    return callback({success: false, error_type: 'sourceAmount_invalid', statusCode: 400}, null)
   }
 
   if (options.sourceCurrency === 'CLP') {
@@ -93,7 +93,7 @@ Maker.prototype.quoteRemittanceFixedSource = function (options, callback) {
       }
     ], callback)
   } else {
-    return callback({success: false, error_type: 'sourceCurrency_invalid'}, null)
+    return callback({success: false, error_type: 'sourceCurrency_invalid', statusCode: 400}, null)
   }
 }
 
