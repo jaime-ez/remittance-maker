@@ -3,10 +3,10 @@
 var async = require('async')
 var _ = require('lodash')
 var SurbtcRestClient = require('surbtc-rest-client')
-var surbtcRestClientApiUrl = require('./config/surbtc_rest_client_options').apiUrl()
-var surbtcRestClientApiKey = require('./config/surbtc_rest_client_options').apiKey()
 
 function Maker (options) {
+  this.apiKey = '' || 'a061fc555331d1285a89b012676d6e7c'
+  this.apiUrl = '' || 'https://stg.surbtc.com/api/'
   this.bridgeCurrency = options.bridgeCurrency || 'BTC'
   this.sourceCurrencyDepositFee = options.sourceCurrencyDepositFee || 0
   this.destinationCurrencyWithdrawalFee = options.destinationCurrencyWithdrawalFee || 0.01
@@ -49,8 +49,8 @@ Maker.prototype.quoteRemittanceFixedSource = function (options, callback) {
   var self = this
 
   var client = new SurbtcRestClient({
-    api: surbtcRestClientApiUrl,
-    secret: surbtcRestClientApiKey
+    api: self.apiUrl,
+    secret: self.apiKey
   })
 
   if (!options.sourceCurrency) {
