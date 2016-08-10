@@ -17,7 +17,7 @@ function Maker (options) {
 Maker.prototype._calculateQuotationFixedSource = function (options, callback) {
   var self = this
 
-  var marketExchangeRate = (options.reverseQuotationTotalMinusExchangeFee / options.sourceAmountCents)
+  var marketExchangeRate = options.reverseQuotation.total / options.sourceAmountCents
   var marketExchangerateActual = marketExchangeRate * (1 - self.btcInsurance)
   var destinationAmountNoFees = _.toInteger(options.sourceAmount * marketExchangerateActual)
   var dinexFeeTotalAmount = _.toInteger(options.sourceAmount * self.dinexFee)
@@ -28,8 +28,8 @@ Maker.prototype._calculateQuotationFixedSource = function (options, callback) {
   var destinationAmountMinusDinexFeeAndDepositFeeAndWithdrawalFee = _.toInteger(options.sourceAmount * (1 - self.dinexFee) * (1 - self.sourceCurrencyDepositFee) * (1 - self.destinationCurrencyWithdrawalFee) * marketExchangerateActual)
 
   var result = {
-    quotation: options.quotationAmountMinusExchangeFee,
-    reverseQuotation: options.reverseQuotationTotalMinusExchangeFee,
+    quotation: _.toNumber(options.quotation.amount),
+    reverseQuotation: _.toNumber(options.reverseQuotation.total),
     marketExchangeRate: marketExchangeRate,
     marketExchangerateActual: marketExchangerateActual,
     sourceAmount: options.sourceAmount,
@@ -95,27 +95,17 @@ Maker.prototype.quoteRemittanceFixedSource = function (options, callback) {
     var reverseType = 'Ask'
     // convert source amount to cents
     options.sourceAmountCents = _.toInteger(options.sourceAmount) * 100
-    // get exchange fee
+
     async.waterfall([
       function (next) {
-        client.getExchangeFee(marketId, type, next)
-      },
-      function (exchangeFeeQuote, next) {
-        options.exchangeFeeQuote = _.toNumber(exchangeFeeQuote.fee_percentage.value) / 100
-        client.getExchangeFee(reverseMarket, reverseType, next)
-      },
-      function (exchangeFeeReverseQuote, next) {
-        options.exchangeFeeReverseQuote = _.toNumber(exchangeFeeReverseQuote.fee_percentage.value) / 100
         client.getQuotation(marketId, type, options.sourceAmountCents, next)
       },
       function (quotation, next) {
         options.quotation = quotation.quotation
-        options.quotationAmountMinusExchangeFee = _.toNumber(options.quotation.amount) * (1 - options.exchangeFeeQuote)
-        client.getReverseQuotation(reverseMarket, reverseType, options.quotationAmountMinusExchangeFee, next)
+        client.getReverseQuotation(reverseMarket, reverseType, _.toNumber(options.quotation.amount), next)
       },
       function (reverseQuotation, next) {
         options.reverseQuotation = reverseQuotation.reverse_quotation
-        options.reverseQuotationTotalMinusExchangeFee = _.toNumber(options.reverseQuotation.total) * (1 - options.exchangeFeeReverseQuote)
         self._calculateQuotationFixedSource(options, next)
       }
     ], callback)
