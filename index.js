@@ -32,10 +32,10 @@ Maker.prototype._calculateQuotationFixedSource = function (options, callback) {
     sourceCurrency: options.sourceCurrency,
     sourceCurrencyDepositFeeAmount: sourceCurrencyDepositFeeAmount,
     dinexFeeTotalAmount: dinexFeeTotalAmount,
-    sourceAmountToBeDeposited: sourceAmountNoFees,
+    sourceAmountToBeDeposited: _.round(sourceAmountNoFees / ((1 - self.dinexFee) * (1 - self.sourceCurrencyDepositFee))),
     destinationCurrency: options.destinationCurrency,
     destinationAmountNoFees: destinationAmountNoFees,
-    destinationAmountToBeReceived: destinationAmountToBeReceived
+    destinationAmountToBeReceived: _.round(destinationAmountToBeReceived, 2)
   }
 
   return callback(null, {success: true, quotation: result})
@@ -62,10 +62,10 @@ Maker.prototype._calculateQuotationFixedDestination = function (options, callbac
     sourceCurrencyDepositFeeAmount: sourceCurrencyDepositFeeAmount,
     sourceAmountPlusDepositFee: sourceAmountPlusDepositFee,
     dinexFeeTotalAmount: dinexFeeTotalAmount,
-    sourceAmountToBeDeposited: sourceAmountPlusDepositFeeAndDinexFee,
+    sourceAmountToBeDeposited: _.round(sourceAmountPlusDepositFeeAndDinexFee),
     destinationCurrency: options.destinationCurrency,
     destinationAmountNoFees: destinationAmountNoFees,
-    destinationAmountToBeReceived: destinationAmountToBeReceived
+    destinationAmountToBeReceived: _.round(destinationAmountToBeReceived, 2)
   }
 
   return callback(null, {success: true, quotation: result})
