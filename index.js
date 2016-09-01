@@ -6,7 +6,7 @@ var SurbtcRestClient = require('surbtc-rest-client')
 
 function Maker (options) {
   this.apiKey = '' || 'a061fc555331d1285a89b012676d6e7c'
-  this.apiUrl = '' || 'https://stg.surbtc.com/api/'
+  this.apiUrl = '' || 'https://stg.surbtc.com/api/v1'
   this.bridgeCurrency = options.bridgeCurrency || 'BTC'
   this.sourceCurrencyDepositFee = options.sourceCurrencyDepositFee || 0
   this.destinationCurrencyWithdrawalFee = options.destinationCurrencyWithdrawalFee || 0.01
@@ -48,25 +48,27 @@ Maker.prototype._calculateQuotationFixedSource = function (options, callback) {
 Maker.prototype._calculateQuotationFixedDestination = function (options, callback) {
   var self = this
 
-  var marketExchangeRate = options.reverseQuotationTotalMinusExchangeFee / options.destinationAmountCents
-  var marketExchangerateActual = marketExchangeRate * (1 - self.btcInsurance)
-  var sourceAmountNoFees = options.destinationAmountCents * marketExchangerateActual / 100
+  var sourceAmountNoFees = _.toNumber(options.quotation.quote_balance_change[0]) * (-1)
+  var marketExchangeRate = options.destinationAmount / sourceAmountNoFees
   var sourceAmountPlusDepositFee = sourceAmountNoFees / (1 - self.sourceCurrencyDepositFee)
   var sourceAmountPlusDepositFeeAndDinexFee = _.toInteger(sourceAmountPlusDepositFee / (1 - self.dinexFee))
   var dinexFeeTotalAmount = _.toInteger(sourceAmountPlusDepositFeeAndDinexFee - sourceAmountPlusDepositFee)
   var sourceCurrencyDepositFeeAmount = _.toInteger(sourceAmountPlusDepositFee - sourceAmountNoFees)
 
-
   var result = {
-    quotation: options.quotationAmountMinusExchangeFee,
-    reverseQuotation: options.reverseQuotationTotalMinusExchangeFee,
+    quotation: options.quotation,
+    reverseQuotation: options.reverseQuotation,
     marketExchangeRate: marketExchangeRate,
-    marketExchangerateActual: marketExchangerateActual,
     sourceAmount: sourceAmountNoFees,
+    sourceCurrency: options.sourceCurrency,
     sourceCurrencyDepositFeeAmount: sourceCurrencyDepositFeeAmount,
     sourceAmountPlusDepositFee: sourceAmountPlusDepositFee,
     dinexFeeTotalAmount: dinexFeeTotalAmount,
-    sourceAmountPlusDepositFeeAndDinexFee: sourceAmountPlusDepositFeeAndDinexFee
+    sourceAmountPlusDepositFeeAndDinexFee: sourceAmountPlusDepositFeeAndDinexFee,
+    sourceAmountToBeDeposited: sourceAmountPlusDepositFeeAndDinexFee,
+    destinationCurrency: options.destinationCurrency,
+    destinationAmountPlusWithdrawalFee: options.destinationAmount,
+    destinationAmount: options.destinationAmount * (1 - self.destinationCurrencyWithdrawalFee)
   }
 
   return callback(null, {success: true, quotation: result})
@@ -145,10 +147,12 @@ Maker.prototype.quoteRemittanceFixedDestination = function (options, callback) {
     var type = 'Ask'
     var reverseMarket = 'BTC-CLP'
     var reverseType = 'Bid'
-    // convert destination amount to cents
-    options.destinationAmountCents = _.toInteger(options.destinationAmount) * 100
-    //include withdrawal fee
-    options.destinationAmountCents = options.destinationAmountCents / (1 - self.destinationCurrencyWithdrawalFee)
+    // force destinationAmount as number
+    options.destinationAmount = _.toNumber(options.destinationAmount)
+    // include withdrawal fee
+    options.destinationAmount = options.destinationAmount / (1 - self.destinationCurrencyWithdrawalFee)
+    // set source currency
+    options.sourceCurrency = 'CLP'
     // get exchange fee
     async.waterfall([
       function (next) {
@@ -160,14 +164,15 @@ Maker.prototype.quoteRemittanceFixedDestination = function (options, callback) {
       },
       function (exchangeFeeReverseQuote, next) {
         options.exchangeFeeReverseQuote = _.toNumber(exchangeFeeReverseQuote.fee_percentage.value) / 100
-        client.getQuotation(marketId, type, options.destinationAmountCents, next)
+        client.getReverseQuotation(marketId, type, options.destinationAmount, next)
+      },
+      function (reverseQuotation, next) {
+        options.reverseQuotation = reverseQuotation.quotation
+        options.reverseQuotationAmountPlusInsurance = _.toNumber(options.reverseQuotation.order_amount[0]) / (1 - self.btcInsurance)
+        client.getQuotation(reverseMarket, reverseType, options.reverseQuotationAmountPlusInsurance, next)
       },
       function (quotation, next) {
         options.quotation = quotation.quotation
-        client.getReverseQuotation(reverseMarket, reverseType, _.toNumber(options.quotation.amount), next)
-      },
-      function (reverseQuotation, next) {
-        options.reverseQuotation = reverseQuotation.reverse_quotation
         self._calculateQuotationFixedDestination(options, next)
       }
     ], callback)
