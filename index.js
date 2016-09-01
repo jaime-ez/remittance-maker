@@ -28,7 +28,7 @@ Maker.prototype._calculateQuotationFixedSource = function (options, callback) {
     quotation: options.quotation,
     reverseQuotation: options.reverseQuotation,
     marketExchangeRate: marketExchangeRate,
-    sourceAmount: sourceAmountNoFees,
+    sourceAmount: options.sourceAmount,
     sourceCurrency: options.sourceCurrency,
     sourceCurrencyDepositFeeAmount: sourceCurrencyDepositFeeAmount,
     dinexFeeTotalAmount: dinexFeeTotalAmount,
@@ -157,6 +157,7 @@ Maker.prototype.quoteRemittanceFixedDestination = function (options, callback) {
         client.getExchangeFee(marketId, type, next)
       },
       function (exchangeFeeQuote, next) {
+        console.log(exchangeFeeQuote)
         options.exchangeFeeQuote = _.toNumber(exchangeFeeQuote.fee_percentage.value) / 100
         client.getExchangeFee(reverseMarket, reverseType, next)
       },
