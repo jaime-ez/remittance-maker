@@ -17,7 +17,7 @@ function Maker (options) {
 Maker.prototype._calculateQuotationFixedSource = function (options, callback) {
   var self = this
 
-  var sourceAmountNoFees = options.sourceAmount / ((1 - self.dinexFee) * (1 - self.sourceCurrencyDepositFee))
+  var sourceAmountNoFees = options.sourceAmount
   var destinationAmountNoFees = _.toNumber(options.quotation.quote_balance_change[0])
   var destinationAmountToBeReceived = destinationAmountNoFees * (1 - self.destinationCurrencyWithdrawalFee)
   var marketExchangeRate = destinationAmountNoFees / sourceAmountNoFees
@@ -99,14 +99,6 @@ Maker.prototype.quoteRemittanceFixedSource = function (options, callback) {
     // get exchange fee
     async.waterfall([
       function (next) {
-        client.getExchangeFee(marketId, type, next)
-      },
-      function (exchangeFeeQuote, next) {
-        options.exchangeFeeQuote = _.toNumber(exchangeFeeQuote.fee_percentage.value) / 100
-        client.getExchangeFee(reverseMarket, reverseType, next)
-      },
-      function (exchangeFeeReverseQuote, next) {
-        options.exchangeFeeReverseQuote = _.toNumber(exchangeFeeReverseQuote.fee_percentage.value) / 100
         client.getReverseQuotation(marketId, type, options.sourceAmount, next)
       },
       function (reverseQuotation, next) {
@@ -154,15 +146,6 @@ Maker.prototype.quoteRemittanceFixedDestination = function (options, callback) {
     // get exchange fee
     async.waterfall([
       function (next) {
-        client.getExchangeFee(marketId, type, next)
-      },
-      function (exchangeFeeQuote, next) {
-        console.log(exchangeFeeQuote)
-        options.exchangeFeeQuote = _.toNumber(exchangeFeeQuote.fee_percentage.value) / 100
-        client.getExchangeFee(reverseMarket, reverseType, next)
-      },
-      function (exchangeFeeReverseQuote, next) {
-        options.exchangeFeeReverseQuote = _.toNumber(exchangeFeeReverseQuote.fee_percentage.value) / 100
         client.getReverseQuotation(marketId, type, options.destinationAmount, next)
       },
       function (reverseQuotation, next) {
