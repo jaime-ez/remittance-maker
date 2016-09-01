@@ -168,7 +168,7 @@ Maker.prototype.quoteRemittanceFixedDestination = function (options, callback) {
       },
       function (reverseQuotation, next) {
         options.reverseQuotation = reverseQuotation.quotation
-        options.reverseQuotationAmountPlusInsurance = _.toNumber(options.reverseQuotation.order_amount[0]) / (1 - self.btcInsurance)
+        options.reverseQuotationAmountPlusInsurance = _.toNumber(options.reverseQuotation.base_balance_change[0]) / (self.btcInsurance - 1)
         client.getQuotation(reverseMarket, reverseType, options.reverseQuotationAmountPlusInsurance, next)
       },
       function (quotation, next) {
