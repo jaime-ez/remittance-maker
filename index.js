@@ -24,6 +24,7 @@ Maker.prototype._calculateQuotationFixedSource = function (options, callback) {
   var marketExchangeRate = destinationAmountNoFees / sourceAmountNoFees
   var sourceCurrencyDepositFeeAmount = sourceAmountNoFees * self.sourceCurrencyDepositFee
   var dinexFeeTotalAmount = (sourceAmountNoFees - sourceCurrencyDepositFeeAmount) * self.dinexFee
+  var btcToBuy = _.toNumber(options.reverseQuotation.base_balance_change[0])
 
   var result = {
     quotation: options.quotation,
@@ -36,7 +37,8 @@ Maker.prototype._calculateQuotationFixedSource = function (options, callback) {
     sourceAmountToBeDeposited: _.round(sourceAmountNoFees / ((1 - self.dinexFee) * (1 - self.sourceCurrencyDepositFee))),
     destinationCurrency: options.destinationCurrency,
     destinationAmountNoFees: destinationAmountNoFees,
-    destinationAmountToBeReceived: _.round(destinationAmountToBeReceived, 2)
+    destinationAmountToBeReceived: _.round(destinationAmountToBeReceived, 2),
+    btcToBuy: btcToBuy
   }
 
   return callback(null, {success: true, quotation: result})
@@ -53,6 +55,7 @@ Maker.prototype._calculateQuotationFixedDestination = function (options, callbac
   var sourceAmountPlusDepositFeeAndDinexFee = sourceAmountPlusDepositFee / (1 - self.dinexFee)
   var dinexFeeTotalAmount = _.toInteger(sourceAmountPlusDepositFeeAndDinexFee - sourceAmountPlusDepositFee)
   var sourceCurrencyDepositFeeAmount = _.toInteger(sourceAmountPlusDepositFee - sourceAmountNoFees)
+  var btcToBuy = _.toNumber(options.reverseQuotation.base_balance_change[0]) * (-1)
 
   var result = {
     quotation: options.quotation,
@@ -66,7 +69,8 @@ Maker.prototype._calculateQuotationFixedDestination = function (options, callbac
     sourceAmountToBeDeposited: _.round(sourceAmountPlusDepositFeeAndDinexFee),
     destinationCurrency: options.destinationCurrency,
     destinationAmountNoFees: destinationAmountNoFees,
-    destinationAmountToBeReceived: _.round(destinationAmountToBeReceived, 2)
+    destinationAmountToBeReceived: _.round(destinationAmountToBeReceived, 2),
+    btcToBuy: btcToBuy
   }
 
   return callback(null, {success: true, quotation: result})
