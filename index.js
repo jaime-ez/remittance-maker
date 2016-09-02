@@ -2,6 +2,7 @@
 
 var async = require('async')
 var _ = require('lodash')
+require('bitcoin-math')
 var SurbtcRestClient = require('surbtc-rest-client')
 
 function Maker (options) {
@@ -156,6 +157,73 @@ Maker.prototype.quoteRemittanceFixedDestination = function (options, callback) {
       function (quotation, next) {
         options.quotation = quotation.quotation
         self._calculateQuotationFixedDestination(options, next)
+      }
+    ], callback)
+  } else {
+    return callback({success: false, error_type: 'destinationCurrency_invalid', statusCode: 400}, null)
+  }
+}
+
+Maker.prototype.executeRemittance = function (options, callback) {
+  var self = this
+
+  var client = new SurbtcRestClient({
+    api: self.apiUrl,
+    secret: self.apiKey
+  })
+
+  if (!(options.btcAmount && _.isFinite(options.btcAmount))) {
+    return callback({success: false, error_type: 'btcAmount_invalid', statusCode: 400}, null)
+  }
+
+  if (!options.destinationCurrency) {
+    return callback({success: false, error_type: 'destinationCurrency_required', statusCode: 400}, null)
+  }
+
+  if (options.destinationCurrency === 'COP') {
+    // market buy of BTC
+    // convert btcAmount to satoshis
+    var amnt = options.btcAmount.toSatoshi()
+    var buyOrder = {
+      type: 'bid',
+      limit: null,
+      amount: amnt,
+      price_type: 'market'
+    }
+
+    // market sell of BTC
+    var sellOrder = {
+      type: 'ask',
+      limit: null,
+      amount: null,
+      price_type: 'market'
+    }
+
+    async.waterfall([
+      function (next) {
+        client.createAndTradeOrder('btc-clp', buyOrder, function (err, res) {
+          if (err) {
+            return callback({success: false, error: err, statusCode: 500}, null)
+          } else {
+            // set sellOrder.amount based on res
+            sellOrder.amount = _.toNumber(res.order.traded_amount)
+            // store res
+            buyOrder.tradedOrder = res.order
+            next()
+          }
+        })
+      },
+      function (next) {
+        client.createAndTradeOrder('btc-cop', sellOrder, function (err, res) {
+          if (err) {
+            // sell back??
+            callback({success: false, error: err, statusCode: 500}, null)
+          } else {
+            // store res
+            sellOrder.tradedOrder = res.order
+            callback(null, {success: true, buyOrder: buyOrder, sellOrder: sellOrder, statusCode: 200})
+          }
+        })
       }
     ], callback)
   } else {
