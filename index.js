@@ -6,8 +6,8 @@ require('bitcoin-math')
 var SurbtcRestClient = require('surbtc-rest-client')
 
 function Maker (options) {
-  this.apiKey = '' || 'a061fc555331d1285a89b012676d6e7c'
-  this.apiUrl = '' || 'https://stg.surbtc.com/api/v1'
+  this.apiKey = options.apiKey || 'a061fc555331d1285a89b012676d6e7c'
+  this.apiUrl = options.apiUrl || 'https://stg.surbtc.com/api/v1'
   this.bridgeCurrency = options.bridgeCurrency || 'BTC'
   this.sourceCurrencyDepositFee = options.sourceCurrencyDepositFee || 0
   this.destinationCurrencyWithdrawalFee = options.destinationCurrencyWithdrawalFee || 0.01
