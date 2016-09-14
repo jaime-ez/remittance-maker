@@ -205,6 +205,27 @@ Maker.prototype.executeRemittance = function (options, callback) {
 
     async.waterfall([
       function (next) {
+        // first we check that we have enough balance to completely fill the order
+        // watch out that quotations are in BTC, CLP and orders in Satoshis, centsCLP
+        client.getQuotation('btc-clp', 'bid', options.btcAmount, function (err, resQuote) {
+          if (err) {
+            return callback({success: false, error: err, statusCode: 500}, null)
+          } else {
+            client.getBalances('clp', function (err, resBalance) {
+              if (err) {
+                return callback({success: false, error: err, statusCode: 500}, null)
+              } else {
+                if (resBalance.balance.available_amount / 100 > resQuote.quotation.quote_balance_change[0] * (-1)) {
+                  next()
+                } else {
+                  return callback({success: false, error: 'insufficient CLP balance on Dinex master account', statusCode: 400}, null)
+                }
+              }
+            })
+          }
+        })
+      },
+      function (next) {
         client.createAndTradeOrder('btc-clp', buyOrder, function (err, res) {
           if (err) {
             return callback({success: false, error: err, statusCode: 500}, null)
