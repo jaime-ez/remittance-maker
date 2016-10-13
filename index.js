@@ -168,6 +168,36 @@ Maker.prototype.quoteRemittanceFixedDestination = function (options, callback) {
   }
 }
 
+Maker.prototype._getBalance = function (currency, expected, callback, loopFunction) {
+  var self = this
+
+  var client = new SurbtcRestClient({
+    api: self.apiUrl,
+    secret: self.apiKey
+  })
+
+  client.getBalances(currency, function (error, response) {
+    if (error) {
+      return callback(error, null)
+    } else {
+      if (_.toNumber(response.balance.available_amount) >= _.toNumber(expected)) {
+        callback(null, response)
+      } else {
+        setTimeout(function () {
+          loopFunction(currency, expected, callback, loopFunction)
+        }, 500)
+      }
+    }
+  })
+}
+
+Maker.prototype._pollBalance = function (currency, expected, callback) {
+  var self = this
+
+  self._getBalance(currency, expected, callback,
+    self._getBalance.bind(this))
+}
+
 Maker.prototype.executeRemittance = function (options, callback) {
   var self = this
 
@@ -239,14 +269,21 @@ Maker.prototype.executeRemittance = function (options, callback) {
         })
       },
       function (next) {
-        client.createAndTradeOrder('btc-cop', sellOrder, function (err, res) {
-          if (err) {
-            // sell back??
-            callback({success: false, error: err, statusCode: 500}, null)
+        // wait untill balance is available
+        self._pollBalance('btc', sellOrder.amount, function (er, balance) {
+          if (er) {
+            callback({success: false, error: er, statusCode: 500}, null)
           } else {
-            // store res
-            sellOrder.tradedOrder = res.order
-            callback(null, {success: true, buyOrder: buyOrder, sellOrder: sellOrder, statusCode: 200})
+            client.createAndTradeOrder('btc-cop', sellOrder, function (err, res) {
+              if (err) {
+                // sell back??
+                callback({success: false, error: err, statusCode: 500}, null)
+              } else {
+                // store res
+                sellOrder.tradedOrder = res.order
+                callback(null, {success: true, buyOrder: buyOrder, sellOrder: sellOrder, statusCode: 200})
+              }
+            })
           }
         })
       }
