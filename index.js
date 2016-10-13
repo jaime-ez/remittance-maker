@@ -24,7 +24,7 @@ Maker.prototype._calculateQuotationFixedSource = function (options, callback) {
   var marketExchangeRate = destinationAmountNoFees / sourceAmountNoFees
   var sourceCurrencyDepositFeeAmount = sourceAmountNoFees * self.sourceCurrencyDepositFee
   var dinexFeeTotalAmount = (sourceAmountNoFees - sourceCurrencyDepositFeeAmount) * self.dinexFee
-  var btcToBuy = _.toNumber(options.reverseQuotation.base_balance_change[0])
+  var btcToBuy = _.toNumber(options.reverseQuotation.order_amount[0])
 
   var result = {
     quotation: options.quotation,
@@ -55,7 +55,7 @@ Maker.prototype._calculateQuotationFixedDestination = function (options, callbac
   var sourceAmountPlusDepositFeeAndDinexFee = sourceAmountPlusDepositFee / (1 - self.dinexFee)
   var dinexFeeTotalAmount = _.toInteger(sourceAmountPlusDepositFeeAndDinexFee - sourceAmountPlusDepositFee)
   var sourceCurrencyDepositFeeAmount = _.toInteger(sourceAmountPlusDepositFee - sourceAmountNoFees)
-  var btcToBuy = _.toNumber(options.reverseQuotation.base_balance_change[0]) * (-1)
+  var btcToBuy = _.toNumber(options.reverseQuotation.order_amount[0])
 
   var result = {
     quotation: options.quotation,
@@ -261,7 +261,7 @@ Maker.prototype.executeRemittance = function (options, callback) {
             return callback({success: false, error: err, statusCode: 500}, null)
           } else {
             // set sellOrder.amount based on res
-            sellOrder.amount = _.toNumber(res.order.traded_amount)
+            sellOrder.amount = _.toNumber(res.order.traded_amount) - _.toNumber(res.order.paid_fee)
             // store res
             buyOrder.tradedOrder = res.order
             next()
