@@ -10,7 +10,7 @@ function Maker (options) {
   this.apiUrl = options.apiUrl || 'https://stg.surbtc.com/api/v1'
   this.bridgeCurrency = options.bridgeCurrency || 'BTC'
   this.sourceCurrencyDepositFee = options.sourceCurrencyDepositFee || 0
-  this.destinationCurrencyWithdrawalFee = options.destinationCurrencyWithdrawalFee || 0.01
+  this.destinationCurrencyWithdrawalFee = options.destinationCurrencyWithdrawalFee || 0.04
   this.dinexFee = options.dinexFee || 0.02
   this.btcInsurance = options.btcInsurance || 0.015
 }
