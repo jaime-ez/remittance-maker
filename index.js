@@ -10,7 +10,8 @@ function Maker (options) {
   this.apiUrl = options.apiUrl || 'https://stg.surbtc.com/api/v1'
   this.bridgeCurrency = options.bridgeCurrency || 'BTC'
   this.sourceCurrencyDepositFee = options.sourceCurrencyDepositFee || 0
-  this.destinationCurrencyWithdrawalFee = options.destinationCurrencyWithdrawalFee || 0.04
+  this.destinationCurrencyWithdrawalFee = options.destinationCurrencyWithdrawalFee || 0.004
+  this.destinationCurrencyWithdrawalFixedFee = options.destinationCurrencyWithdrawalFixedFee || 5500
   this.dinexFee = options.dinexFee || 0.02
   this.btcInsurance = options.btcInsurance || 0.015
 }
@@ -18,10 +19,10 @@ function Maker (options) {
 Maker.prototype._calculateQuotationFixedSource = function (options, callback) {
   var self = this
 
-  var sourceAmountNoFees = options.sourceAmount
+  var sourceAmountNoFees = options.sourceAmount / ((1 - self.dinexFee) * (1 - self.sourceCurrencyDepositFee))
   var destinationAmountNoFees = _.toNumber(options.quotation.quote_balance_change[0])
-  var destinationAmountToBeReceived = destinationAmountNoFees * (1 - self.destinationCurrencyWithdrawalFee)
-  var marketExchangeRate = destinationAmountNoFees / sourceAmountNoFees
+  var destinationAmountToBeReceived = destinationAmountNoFees * (1 - self.destinationCurrencyWithdrawalFee) - self.destinationCurrencyWithdrawalFixedFee
+  var marketExchangeRate = destinationAmountNoFees / options.sourceAmount
   var sourceCurrencyDepositFeeAmount = sourceAmountNoFees * self.sourceCurrencyDepositFee
   var dinexFeeTotalAmount = (sourceAmountNoFees - sourceCurrencyDepositFeeAmount) * self.dinexFee
   var btcToBuy = _.toNumber(options.reverseQuotation.order_amount[0])
@@ -34,7 +35,7 @@ Maker.prototype._calculateQuotationFixedSource = function (options, callback) {
     sourceCurrency: options.sourceCurrency,
     sourceCurrencyDepositFeeAmount: sourceCurrencyDepositFeeAmount,
     dinexFeeTotalAmount: _.round(dinexFeeTotalAmount),
-    sourceAmountToBeDeposited: _.round(sourceAmountNoFees / ((1 - self.dinexFee) * (1 - self.sourceCurrencyDepositFee))),
+    sourceAmountToBeDeposited: _.round(sourceAmountNoFees),
     destinationCurrency: options.destinationCurrency,
     destinationAmountNoFees: destinationAmountNoFees,
     destinationAmountToBeReceived: _.round(destinationAmountToBeReceived, 2),
@@ -49,7 +50,7 @@ Maker.prototype._calculateQuotationFixedDestination = function (options, callbac
 
   var sourceAmountNoFees = _.toNumber(options.quotation.quote_balance_change[0]) * (-1)
   var destinationAmountNoFees = options.reverseQuotation.quote_balance_change[0]
-  var destinationAmountToBeReceived = options.destinationAmount * (1 - self.destinationCurrencyWithdrawalFee)
+  var destinationAmountToBeReceived = options.destinationAmount * (1 - self.destinationCurrencyWithdrawalFee) - self.destinationCurrencyWithdrawalFixedFee
   var marketExchangeRate = destinationAmountNoFees / sourceAmountNoFees
   var sourceAmountPlusDepositFee = sourceAmountNoFees / (1 - self.sourceCurrencyDepositFee)
   var sourceAmountPlusDepositFeeAndDinexFee = sourceAmountPlusDepositFee / (1 - self.dinexFee)
