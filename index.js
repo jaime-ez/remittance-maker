@@ -39,7 +39,8 @@ Maker.prototype._calculateQuotationFixedSource = function (options, callback) {
     destinationCurrency: options.destinationCurrency,
     destinationAmountNoFees: destinationAmountNoFees,
     destinationAmountToBeReceived: _.round(destinationAmountToBeReceived, 2),
-    btcToBuy: btcToBuy
+    btcToBuy: btcToBuy,
+    maxSourceAmount: options.dinexBalance >= _.toNumber(options.sourceAmount) ? false : _.round(options.dinexBalance)
   }
 
   return callback(null, {success: true, quotation: result})
@@ -71,7 +72,8 @@ Maker.prototype._calculateQuotationFixedDestination = function (options, callbac
     destinationCurrency: options.destinationCurrency,
     destinationAmountNoFees: destinationAmountNoFees,
     destinationAmountToBeReceived: _.round(destinationAmountToBeReceived, 2),
-    btcToBuy: btcToBuy
+    btcToBuy: btcToBuy,
+    maxSourceAmount: options.dinexBalance >= _.round(sourceAmountNoFees) ? false : _.round(options.dinexBalance)
   }
 
   return callback(null, {success: true, quotation: result})
@@ -102,9 +104,13 @@ Maker.prototype.quoteRemittanceFixedSource = function (options, callback) {
     options.sourceAmount = _.toInteger(options.sourceAmount) * (1 - self.sourceCurrencyDepositFee) * (1 - self.dinexFee)
     // set destination currency
     options.destinationCurrency = 'COP'
-    // get exchange fee
+
     async.waterfall([
       function (next) {
+        client.getBalances(options.sourceCurrency, next)
+      },
+      function (dinexBalance, next) {
+        options.dinexBalance = dinexBalance.balance.available_amount / 100
         client.getReverseQuotation(marketId, type, options.sourceAmount, next)
       },
       function (reverseQuotation, next) {
@@ -149,7 +155,7 @@ Maker.prototype.quoteRemittanceFixedDestination = function (options, callback) {
     options.destinationAmount = options.destinationAmount / (1 - self.destinationCurrencyWithdrawalFee)
     // set source currency
     options.sourceCurrency = 'CLP'
-    // get exchange fee
+
     async.waterfall([
       function (next) {
         client.getReverseQuotation(marketId, type, options.destinationAmount, next)
@@ -161,6 +167,10 @@ Maker.prototype.quoteRemittanceFixedDestination = function (options, callback) {
       },
       function (quotation, next) {
         options.quotation = quotation.quotation
+        client.getBalances(options.sourceCurrency, next)
+      },
+      function (dinexBalance, next) {
+        options.dinexBalance = dinexBalance.balance.available_amount / 100
         self._calculateQuotationFixedDestination(options, next)
       }
     ], callback)
