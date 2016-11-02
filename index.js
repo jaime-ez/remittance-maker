@@ -12,7 +12,7 @@ function Maker (options) {
   this.sourceCurrencyDepositFee = options.sourceCurrencyDepositFee || 0
   this.destinationCurrencyWithdrawalFee = options.destinationCurrencyWithdrawalFee || 0.004
   this.destinationCurrencyWithdrawalFixedFee = options.destinationCurrencyWithdrawalFixedFee || 5500
-  this.dinexFee = options.dinexFee || 0.02
+  this.dinexFee = options.dinexFee === 0 ? 0 : (options.dinexFee || 0.02)
   this.btcInsurance = options.btcInsurance || 0.015
 }
 
