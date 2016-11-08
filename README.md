@@ -63,17 +63,3 @@ Executes a remittance
 # To Do  
 
 Use nconf to handle configuration  
-
-
-
-# Tips  
-
-Uno vende Btc con reverse_quotation type Ask
-Uno compra Btc con quotation type Bid  
-
-Uno sabe cuantos btcAmount necesita para lograr un totalFiat con quotation type Ask
-Uno sabe cuantos fiat necesita para lograr un btcAmount con reverse_quotation type Bid
-
-
-# flujo  
-
