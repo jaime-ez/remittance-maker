@@ -20,7 +20,7 @@
     "async": "^2.0.1",
     "bitcoin-math": "^0.2.0",
     "lodash": "^4.14.1",
-    "surbtc-rest-client": "^1.0.5"
+    "surbtc-rest-client": "^2.0.0"
   },
   "devDependencies": {
     "chai": "^3.5.0",
