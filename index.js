@@ -112,7 +112,7 @@ Maker.prototype.quoteRemittanceFixedSource = function (options, callback) {
         client.getBalances(options.sourceCurrency, next)
       },
       function (dinexBalance, next) {
-        options.dinexBalance = dinexBalance.balance.available_amount / 100
+        options.dinexBalance = dinexBalance ? dinexBalance.balance.available_amount / 100 : 1
         client.getReverseQuotation(marketId, type, options.sourceAmount, next)
       },
       function (reverseQuotation, next) {
