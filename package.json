@@ -1,6 +1,6 @@
 {
   "name": "remittance-maker",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Module that connects to remittance providers in order to quote and execute remittance orders",
   "main": "index.js",
   "scripts": {
