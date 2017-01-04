@@ -1,0 +1,20 @@
+{
+  "name": "remittance-maker",
+  "description": "Module that connects to remittance providers in order to quote and execute remittance orders",
+  "main": "dist/index.min.js",
+  "authors": [
+    "Jaime Echegaray Zipper"
+  ],
+  "license": "MIT",
+  "keywords": [
+    "remittance"
+  ],
+  "homepage": "https://github.com/jaime-ez/remittance-maker",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
