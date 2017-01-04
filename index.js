@@ -6,7 +6,8 @@ require('bitcoin-math')
 var SurbtcRestClient = require('surbtc-rest-client')
 
 function Maker (options) {
-  this.apiKey = options.apiKey || 'a061fc555331d1285a89b012676d6e7c'
+  this.apiKey = options.apiKey || ''
+  this.apiSecret = options.apiSecret || ''
   this.apiUrl = options.apiUrl || 'https://stg.surbtc.com/api/v1'
   this.bridgeCurrency = options.bridgeCurrency || 'BTC'
   this.sourceCurrencyDepositFee = options.sourceCurrencyDepositFee || 0
@@ -84,7 +85,8 @@ Maker.prototype.quoteRemittanceFixedSource = function (options, callback) {
 
   var client = new SurbtcRestClient({
     api: self.apiUrl,
-    secret: self.apiKey
+    secret: self.apiSecret,
+    key: self.apiKey
   })
 
   if (!options.sourceCurrency) {
@@ -110,7 +112,7 @@ Maker.prototype.quoteRemittanceFixedSource = function (options, callback) {
         client.getBalances(options.sourceCurrency, next)
       },
       function (dinexBalance, next) {
-        options.dinexBalance = dinexBalance.balance.available_amount / 100
+        options.dinexBalance = dinexBalance ? dinexBalance.balance.available_amount / 100 : 1
         client.getReverseQuotation(marketId, type, options.sourceAmount, next)
       },
       function (reverseQuotation, next) {
@@ -133,7 +135,8 @@ Maker.prototype.quoteRemittanceFixedDestination = function (options, callback) {
 
   var client = new SurbtcRestClient({
     api: self.apiUrl,
-    secret: self.apiKey
+    secret: self.apiSecret,
+    key: self.apiKey
   })
 
   if (!options.destinationCurrency) {
@@ -184,7 +187,8 @@ Maker.prototype._getBalance = function (currency, expected, callback, loopFuncti
 
   var client = new SurbtcRestClient({
     api: self.apiUrl,
-    secret: self.apiKey
+    secret: self.apiSecret,
+    key: self.apiKey
   })
 
   client.getBalances(currency, function (error, response) {
@@ -214,7 +218,8 @@ Maker.prototype.executeRemittance = function (options, callback) {
 
   var client = new SurbtcRestClient({
     api: self.apiUrl,
-    secret: self.apiKey
+    secret: self.apiSecret,
+    key: self.apiKey
   })
 
   if (!(options.btcAmount && _.isFinite(options.btcAmount))) {
