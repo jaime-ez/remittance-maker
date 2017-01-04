@@ -1,18 +1,25 @@
 # remittance-maker  
 
-This module connects to exchanges in order to quote and execute remittances.  
+This module connects to the [surbtc bitcoin exchange](https://www.surbtc.com) in order to quote and execute remittances.  
 
 [![JavaScript Style Guide](https://cdn.rawgit.com/feross/standard/master/badge.svg)](https://github.com/feross/standard)  
 
 ## Installation  
 
 npm install remittance-maker  
+bower install remittance-maker  
 
 ### Usage  
+
+#### Nodejs  
 
     var RemittanceMaker = require("remittance-maker").Maker  
 
     var maker = new RemittanceMaker({})  
+
+#### Browser  
+
+    var maker = new Maker({})
 
 ### Primary functions  
 
@@ -42,7 +49,7 @@ Gives a quote for a remittance based on a fixed destination currency and amount
     maker.quoteRemittanceFixedDestination(options, function(err, res){
 
     })  
-    
+
 #### executeRemittance  
 
 Executes a remittance  
@@ -57,9 +64,3 @@ Executes a remittance
     maker.executeRemittance(options, function(err, res){
 
     })      
-
-####      
-
-# To Do  
-
-Use nconf to handle configuration  
