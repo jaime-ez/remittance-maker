@@ -310,3 +310,4 @@ Maker.prototype.executeRemittance = function (options, callback) {
 }
 
 module.exports = Maker
+module.exports.surBtcRestClient = SurbtcRestClient
