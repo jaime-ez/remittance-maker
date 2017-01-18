@@ -13,19 +13,19 @@ function Maker (options) {
   this.sourceCurrencyDepositFee = options.sourceCurrencyDepositFee || 0
   this.destinationCurrencyWithdrawalFee = options.destinationCurrencyWithdrawalFee || 0.004
   this.destinationCurrencyWithdrawalFixedFee = options.destinationCurrencyWithdrawalFixedFee || 5500
-  this.dinexFee = options.dinexFee === 0 ? 0 : (options.dinexFee || 0.02)
+  this.processorFee = options.processorFee === 0 ? 0 : (options.processorFee || 0.02)
   this.btcInsurance = options.btcInsurance || 0.015
 }
 
 Maker.prototype._calculateQuotationFixedSource = function (options, callback) {
   var self = this
 
-  var sourceAmountNoFees = options.sourceAmount / ((1 - self.dinexFee) * (1 - self.sourceCurrencyDepositFee))
+  var sourceAmountNoFees = options.sourceAmount / ((1 - self.processorFee) * (1 - self.sourceCurrencyDepositFee))
   var destinationAmountNoFees = _.toNumber(options.quotation.quote_balance_change[0])
   var destinationAmountToBeReceived = destinationAmountNoFees * (1 - self.destinationCurrencyWithdrawalFee) - self.destinationCurrencyWithdrawalFixedFee
   var marketExchangeRate = destinationAmountNoFees / options.sourceAmount
   var sourceCurrencyDepositFeeAmount = sourceAmountNoFees * self.sourceCurrencyDepositFee
-  var dinexFeeTotalAmount = (sourceAmountNoFees - sourceCurrencyDepositFeeAmount) * self.dinexFee
+  var processorFeeTotalAmount = (sourceAmountNoFees - sourceCurrencyDepositFeeAmount) * self.processorFee
   var btcToBuy = _.toNumber(options.reverseQuotation.order_amount[0])
 
   var result = {
@@ -35,7 +35,7 @@ Maker.prototype._calculateQuotationFixedSource = function (options, callback) {
     sourceAmount: options.sourceAmount,
     sourceCurrency: options.sourceCurrency,
     sourceCurrencyDepositFeeAmount: sourceCurrencyDepositFeeAmount,
-    dinexFeeTotalAmount: _.round(dinexFeeTotalAmount),
+    processorFeeTotalAmount: _.round(processorFeeTotalAmount),
     sourceAmountToBeDeposited: _.round(sourceAmountNoFees),
     destinationCurrency: options.destinationCurrency,
     destinationAmountNoFees: destinationAmountNoFees,
@@ -55,8 +55,8 @@ Maker.prototype._calculateQuotationFixedDestination = function (options, callbac
   var destinationAmountToBeReceived = options.destinationAmount * (1 - self.destinationCurrencyWithdrawalFee) - self.destinationCurrencyWithdrawalFixedFee
   var marketExchangeRate = destinationAmountNoFees / sourceAmountNoFees
   var sourceAmountPlusDepositFee = sourceAmountNoFees / (1 - self.sourceCurrencyDepositFee)
-  var sourceAmountPlusDepositFeeAndDinexFee = sourceAmountPlusDepositFee / (1 - self.dinexFee)
-  var dinexFeeTotalAmount = _.toInteger(sourceAmountPlusDepositFeeAndDinexFee - sourceAmountPlusDepositFee)
+  var sourceAmountPlusDepositFeeAndprocessorFee = sourceAmountPlusDepositFee / (1 - self.processorFee)
+  var processorFeeTotalAmount = _.toInteger(sourceAmountPlusDepositFeeAndprocessorFee - sourceAmountPlusDepositFee)
   var sourceCurrencyDepositFeeAmount = _.toInteger(sourceAmountPlusDepositFee - sourceAmountNoFees)
   var btcToBuy = _.toNumber(options.reverseQuotation.order_amount[0])
 
@@ -68,8 +68,8 @@ Maker.prototype._calculateQuotationFixedDestination = function (options, callbac
     sourceCurrency: options.sourceCurrency,
     sourceCurrencyDepositFeeAmount: sourceCurrencyDepositFeeAmount,
     sourceAmountPlusDepositFee: sourceAmountPlusDepositFee,
-    dinexFeeTotalAmount: _.round(dinexFeeTotalAmount),
-    sourceAmountToBeDeposited: _.round(sourceAmountPlusDepositFeeAndDinexFee),
+    processorFeeTotalAmount: _.round(processorFeeTotalAmount),
+    sourceAmountToBeDeposited: _.round(sourceAmountPlusDepositFeeAndprocessorFee),
     destinationCurrency: options.destinationCurrency,
     destinationAmountNoFees: destinationAmountNoFees,
     destinationAmountToBeReceived: _.round(destinationAmountToBeReceived, 2),
@@ -103,7 +103,7 @@ Maker.prototype.quoteRemittanceFixedSource = function (options, callback) {
     var reverseMarket = 'BTC-COP'
     var reverseType = 'Ask'
     // convert source amount to amount minus dinex fee
-    options.sourceAmount = _.toInteger(options.sourceAmount) * (1 - self.sourceCurrencyDepositFee) * (1 - self.dinexFee)
+    options.sourceAmount = _.toInteger(options.sourceAmount) * (1 - self.sourceCurrencyDepositFee) * (1 - self.processorFee)
     // set destination currency
     options.destinationCurrency = 'COP'
 
@@ -264,7 +264,7 @@ Maker.prototype.executeRemittance = function (options, callback) {
                 if (resBalance.balance.available_amount / 100 > resQuote.quotation.quote_balance_change[0] * (-1)) {
                   next()
                 } else {
-                  return callback({success: false, error: 'insufficient CLP balance on Dinex master account', statusCode: 400}, null)
+                  return callback({success: false, error: 'insufficient CLP balance on master account', statusCode: 400}, null)
                 }
               }
             })
